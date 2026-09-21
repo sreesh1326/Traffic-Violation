@@ -16,9 +16,9 @@ def register(user: schemas.userRegistration, db: Session = Depends(get_db)):
         raise HTTPException(status_code = 400, detail = "Email already existed lil bro")
     hashed_password = pwd_context.hash(user.password)
 
-    new_user = models.User(name = user.username,
+    new_user = models.User(username = user.username,
                            email = user.email,
-                           password = hashed_password)
+                           hashed_password = hashed_password)
 
     db.add(new_user)
     db.commit()
@@ -27,7 +27,7 @@ def register(user: schemas.userRegistration, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model = schemas.TokenResponse)
 def login(user: schemas.userLogin, db: Session = Depends(get_db)):
-    db_user = db.query(models.user).filter(models.user.email == user.email).first()
+    db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if not db_user or not pwd_context.verify(user.password, db_user.hashed_password):
         raise HTTPException(status_code = 401, detail = "Invalid credentials")
     access_token = create_access_token(data = {"sub": db_user.email})
